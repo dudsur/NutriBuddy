@@ -183,11 +183,6 @@ export default function ProfilePage() {
               {textSize.charAt(0).toUpperCase() + textSize.slice(1)}
             </button>
           </div>
-          <div className="h-px bg-black/10 dark:bg-white/10" />
-          <div className="flex items-center justify-between">
-            <p className="text-sm font-semibold text-black dark:text-zinc-100">Units</p>
-            <span className="text-xs text-gray-500 dark:text-zinc-400">Metric</span>
-          </div>
         </div>
       </div>
     </div>
