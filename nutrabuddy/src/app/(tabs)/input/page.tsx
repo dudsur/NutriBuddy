@@ -128,9 +128,8 @@ export default function InputPage() {
               </p>
             </div>
             <button
-              onClick={() => {
-                saveTodayToHistory();
-              }}
+              type="button"
+              onClick={() => saveTodayToHistory()}
               className="px-4 py-2 rounded-2xl bg-[#4F7C6D] text-white text-sm font-semibold hover:opacity-90 transition"
             >
               Save
@@ -145,6 +144,7 @@ export default function InputPage() {
               className="flex-1 bg-[#F4F7F5] rounded-2xl px-3 py-2 text-sm outline-none border border-black/5"
               onKeyDown={(e) => {
                 if (e.key === "Enter") {
+                  e.preventDefault();
                   const t = foodText.trim();
                   if (!t) return;
                   addFood(t, foodCat);
@@ -168,15 +168,17 @@ export default function InputPage() {
             </select>
 
             <button
+              type="button"
               onClick={() => {
                 const t = foodText.trim();
                 if (!t) return;
                 addFood(t, foodCat);
                 setFoodText("");
               }}
-              className="px-3 py-2 rounded-2xl bg-white border border-black/5 shadow-sm text-sm font-semibold"
+              className="px-4 py-2 rounded-2xl bg-[#4F7C6D] text-white text-sm font-semibold hover:opacity-90 min-w-[48px]"
+              aria-label="Add food"
             >
-              +
+              Add
             </button>
           </div>
 
@@ -192,6 +194,7 @@ export default function InputPage() {
             ].map((x) => (
               <button
                 key={x.t}
+                type="button"
                 onClick={() => addFood(x.t, x.c as any)}
                 className="text-xs px-3 py-2 rounded-2xl bg-[#F4F7F5] border border-black/5"
               >
@@ -218,6 +221,7 @@ export default function InputPage() {
                     <p className="text-xs text-gray-500">{f.cat}</p>
                     </div>
                     <button
+                      type="button"
                       onClick={() => removeFood(f.id)}
                       className="text-xs px-3 py-2 rounded-2xl bg-white border border-black/5"
                     >
