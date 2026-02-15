@@ -113,35 +113,32 @@ export default function TabsLayout({
   // Only ONE header should exist here.
   // Do NOT recreate the header inside individual pages.
   return (
-    <main className="min-h-screen bg-[#F4F7F5] flex justify-center">
-      <div className="w-full max-w-[420px] min-h-screen bg-white shadow-xl flex flex-col">
+    <main className="min-h-screen bg-[#F4F7F5] dark:bg-zinc-900 flex justify-center">
+      <div className="w-full max-w-[420px] min-h-screen bg-white dark:bg-zinc-900 shadow-xl flex flex-col">
         {/* Header */}
-        <div className="p-6 bg-[#4F7C6D] text-white text-center">
+        <div className="p-6 bg-[#4F7C6D] dark:bg-[#3d6154] text-white text-center">
           <h1 className="text-3xl font-extrabold tracking-tight">NutraBuddy</h1>
           <p className="text-sm opacity-90 mt-1">Your Wellness Companion</p>
         </div>
 
         {/* Body */}
-        <div className="flex-1 bg-[#F4F7F5]">{children}</div>
+        <div className="flex-1 bg-[#F4F7F5] dark:bg-zinc-900">{children}</div>
 
-        {/* Bottom Nav */}
-        <div className="sticky bottom-0 bg-white/95 backdrop-blur border-t border-black/10">
-          <div className="relative mx-auto w-full max-w-[420px] px-4 pb-4 pt-3">
-            {/* Floating + */}
-            <Link
-              href="/input"
-              className="absolute left-1/2 -translate-x-1/2 -top-7
-                         h-14 w-14 rounded-full bg-[#4F7C6D] text-white
-                         shadow-lg flex items-center justify-center text-2xl
-                         ring-8 ring-white"
-              aria-label="Log"
-            >
-              +
-            </Link>
-
-            <nav className="grid grid-cols-4 gap-2">
+        {/* Bottom Nav: plus in center, 2 tabs each side */}
+        <div className="sticky bottom-0 bg-white/95 dark:bg-zinc-900/95 backdrop-blur border-t border-black/10 dark:border-white/10">
+          <div className="mx-auto w-full max-w-[420px] px-2 pb-3 pt-3">
+            <nav className="grid grid-cols-5 items-end gap-0">
               <NavLink href="/overview" label="Overview" icon={<IconOverview active />} />
               <NavLink href="/trends" label="Trends" icon={<IconTrends />} />
+              <div className="flex justify-center items-center pt-2">
+                <Link
+                  href="/input"
+                  className="h-14 w-14 rounded-full bg-[#4F7C6D] text-white shadow-lg flex items-center justify-center text-2xl font-light -mb-1 hover:opacity-90 transition"
+                  aria-label="Log"
+                >
+                  +
+                </Link>
+              </div>
               <NavLink href="/chat" label="Chat" icon={<IconChat />} />
               <NavLink href="/profile" label="Profile" icon={<IconProfile />} />
             </nav>

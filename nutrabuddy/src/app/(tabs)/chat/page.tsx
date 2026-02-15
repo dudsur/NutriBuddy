@@ -27,7 +27,7 @@ export default function ChatPage() {
     {
       id: uid(),
       role: "coach",
-      text: "Hey — I’m your NutraBuddy coach. Tell me what you’re feeling today.",
+      text: "Hey — I'm your NutraBuddy coach. Tell me what you're feeling today.",
       ts: Date.now(),
     },
   ]);
@@ -89,7 +89,7 @@ export default function ChatPage() {
         {
           id: uid(),
           role: "coach",
-          text: "Couldn’t reach the coach. Make sure the app is running (npm run dev) and open http://localhost:3000, then try again.",
+          text: "Couldn't reach the coach. Make sure the app is running (npm run dev) and open http://localhost:3000, then try again.",
           ts: Date.now(),
         },
       ]);
@@ -99,12 +99,11 @@ export default function ChatPage() {
   }
 
   return (
-    <div className="flex flex-col min-h-[calc(100vh-80px)] bg-[#F4F7F5]">
-      <div className="mx-auto w-full max-w-[420px] flex flex-col flex-1 px-5 pt-6 pb-24">
-        
+    <div className="flex flex-col min-h-[calc(100vh-80px)] bg-[#F4F7F5] dark:bg-zinc-900">
+      <div className="mx-auto w-full max-w-[420px] flex flex-col flex-1 min-h-0 px-5 pt-6 pb-24">
         {/* Coach Header */}
-        <div className="bg-white rounded-3xl p-4 shadow-sm border border-black/5 flex items-center gap-4">
-          <div className="w-14 h-14 rounded-2xl overflow-hidden bg-[#E3EFE8] border border-black/5">
+        <div className="bg-white dark:bg-zinc-800 rounded-3xl p-4 shadow-sm border border-black/5 dark:border-white/10 flex items-center gap-4 flex-shrink-0">
+          <div className="w-14 h-14 rounded-2xl overflow-hidden bg-[#E3EFE8] dark:bg-zinc-700 border border-black/5 dark:border-white/10">
             <img
               src={coachAvatar}
               alt="coach avatar"
@@ -112,19 +111,19 @@ export default function ChatPage() {
             />
           </div>
           <div>
-            <p className="text-xs font-semibold text-gray-500">
+            <p className="text-xs font-semibold text-gray-500 dark:text-zinc-400">
               NutraBuddy Coach
             </p>
-            <p className="text-lg font-extrabold text-black leading-tight">
+            <p className="text-lg font-extrabold text-black dark:text-zinc-100 leading-tight">
               Ask me anything
             </p>
           </div>
         </div>
 
-        {/* Messages */}
+        {/* Messages - scrollable */}
         <div
           ref={listRef}
-          className="flex-1 mt-5 space-y-3 overflow-y-auto pr-1"
+          className="flex-1 mt-5 space-y-3 overflow-y-auto pr-1 min-h-0 pb-2"
         >
           {messages.map((m) => (
             <div
@@ -137,7 +136,7 @@ export default function ChatPage() {
                 className={`max-w-[85%] rounded-3xl px-4 py-3 text-sm leading-relaxed ${
                   m.role === "user"
                     ? "bg-[#4F7C6D] text-white rounded-br-xl"
-                    : "bg-white text-black rounded-bl-xl shadow-sm border border-black/5"
+                    : "bg-white dark:bg-zinc-800 text-black dark:text-zinc-100 rounded-bl-xl shadow-sm border border-black/5 dark:border-white/10"
                 }`}
               >
                 {m.text}
@@ -145,58 +144,50 @@ export default function ChatPage() {
             </div>
           ))}
         </div>
-      </div>
 
-      {/* Sticky Input */}
-      <div className="fixed bottom-[72px] left-0 right-0">
-        <div className="mx-auto w-full max-w-[420px] px-5">
-          <div className="bg-white rounded-3xl p-3 shadow-sm border border-black/5 flex items-center gap-2">
-
-            {/* Quick Icons */}
-            <button
-              type="button"
-              onClick={() => setInput("I feel tired")}
-              className="w-10 h-10 rounded-2xl bg-[#F4F7F5] border border-black/5 flex items-center justify-center"
-            >
-              😴
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setInput("What should I eat today?")}
-              className="w-10 h-10 rounded-2xl bg-[#F4F7F5] border border-black/5 flex items-center justify-center"
-            >
-              🍽️
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setInput("How do I improve my energy?")}
-              className="w-10 h-10 rounded-2xl bg-[#F4F7F5] border border-black/5 flex items-center justify-center"
-            >
-              ⚡
-            </button>
-
-            {/* Input */}
-            <input
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              placeholder="What are you feeling?"
-              className="flex-1 bg-transparent outline-none text-sm text-black placeholder:text-gray-400 px-2"
-              onKeyDown={(e) => {
-                if (e.key === "Enter") send();
-              }}
-            />
-
-            {/* Send Button */}
-            <button
-              type="button"
-              onClick={send}
-              disabled={loading}
-              className="px-4 py-2 rounded-2xl bg-[#4F7C6D] text-white text-sm font-semibold disabled:opacity-50 hover:opacity-90 transition"
-            >
-              {loading ? "..." : "Send"}
-            </button>
+        {/* Chat input bar - fixed just above the plus so the plus stays visible */}
+        <div className="fixed left-0 right-0 bottom-[72px] z-[9999] flex justify-center px-5">
+          <div className="w-full max-w-[420px]">
+            <div className="bg-white dark:bg-zinc-800 rounded-3xl p-3 shadow-lg border border-black/5 dark:border-white/10 flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setInput("I feel tired")}
+                className="w-10 h-10 rounded-2xl bg-[#F4F7F5] dark:bg-zinc-700 border border-black/5 dark:border-white/10 flex items-center justify-center"
+              >
+                😴
+              </button>
+              <button
+                type="button"
+                onClick={() => setInput("What should I eat today?")}
+                className="w-10 h-10 rounded-2xl bg-[#F4F7F5] dark:bg-zinc-700 border border-black/5 dark:border-white/10 flex items-center justify-center"
+              >
+                🍽️
+              </button>
+              <button
+                type="button"
+                onClick={() => setInput("How do I improve my energy?")}
+                className="w-10 h-10 rounded-2xl bg-[#F4F7F5] dark:bg-zinc-700 border border-black/5 dark:border-white/10 flex items-center justify-center"
+              >
+                ⚡
+              </button>
+              <input
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                placeholder="What are you feeling?"
+                className="flex-1 bg-transparent outline-none text-sm text-black dark:text-zinc-100 placeholder:text-gray-400 dark:placeholder:text-zinc-500 px-2 min-w-0"
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") send();
+                }}
+              />
+              <button
+                type="button"
+                onClick={send}
+                disabled={loading}
+                className="px-4 py-2 rounded-2xl bg-[#4F7C6D] text-white text-sm font-semibold disabled:opacity-50 hover:opacity-90 transition"
+              >
+                {loading ? "..." : "Send"}
+              </button>
+            </div>
           </div>
         </div>
       </div>

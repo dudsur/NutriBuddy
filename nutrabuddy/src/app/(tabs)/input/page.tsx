@@ -25,13 +25,13 @@ function ProgressBar({
   return (
     <div className="space-y-1">
       <div className="flex justify-between text-xs">
-        <span className="text-gray-600">{label}</span>
-        <span className={met ? "text-[#4F7C6D] font-medium" : "text-gray-500"}>
+        <span className="text-gray-600 dark:text-zinc-400">{label}</span>
+        <span className={met ? "text-[#4F7C6D] font-medium" : "text-gray-500 dark:text-zinc-400"}>
           {Math.round(current)}{unit} / {Math.round(target)}{unit}
           {met && " ✓"}
         </span>
       </div>
-      <div className="h-2 bg-black/5 rounded-full overflow-hidden">
+      <div className="h-2 bg-black/5 dark:bg-white/10 rounded-full overflow-hidden">
         <div
           className={`h-full rounded-full transition-all ${met ? "bg-[#4F7C6D]" : "bg-[#4F7C6D]/60"}`}
           style={{ width: `${pct}%` }}
@@ -41,6 +41,8 @@ function ProgressBar({
   );
 }
 
+const CUPS_TO_LITRES = 0.236588;
+
 function SliderRow(props: {
   label: string;
   value: number;
@@ -49,14 +51,14 @@ function SliderRow(props: {
   step: number;
   onChange: (v: number) => void;
   suffix?: string;
+  displayText?: string;
 }) {
   return (
     <div className="py-3">
       <div className="flex items-center justify-between mb-1">
-        <p className="text-sm font-semibold text-black">{props.label}</p>
-        <p className="text-sm text-gray-500">
-          {props.value}
-          {props.suffix ?? ""}
+        <p className="text-sm font-semibold text-black dark:text-zinc-100">{props.label}</p>
+        <p className="text-sm text-gray-500 dark:text-zinc-400">
+          {props.displayText ?? `${props.value}${props.suffix ?? ""}`}
         </p>
       </div>
       <input
@@ -93,6 +95,7 @@ export default function InputPage() {
 
   const [foodText, setFoodText] = useState("");
   const [loadingMacroIds, setLoadingMacroIds] = useState<Set<string>>(new Set());
+  const [savedFeedback, setSavedFeedback] = useState(false);
 
   const totals = useMemo(() => sumMacros(foodsToday), [foodsToday]);
   const targets = useMemo(() => getEffectiveTargets(goals), [goals]);
@@ -165,12 +168,12 @@ export default function InputPage() {
   );
 
   return (
-    <div className="min-h-[calc(100vh-80px)] bg-[#F4F7F5]">
+    <div className="min-h-[calc(100vh-80px)] bg-[#F4F7F5] dark:bg-zinc-900">
       <div className="mx-auto w-full max-w-[420px] px-5 pb-24 pt-6 space-y-5">
         {/* What did you eat — one line + Add */}
-        <div className="bg-white rounded-3xl p-5 shadow-sm border border-black/5">
-          <h2 className="text-xl font-extrabold text-black">What did you eat?</h2>
-          <p className="text-sm text-gray-500 mt-1">
+        <div className="bg-white dark:bg-zinc-800 rounded-3xl p-5 shadow-sm border border-black/5 dark:border-white/10">
+          <h2 className="text-xl font-extrabold text-black dark:text-zinc-100">What did you eat?</h2>
+          <p className="text-sm text-gray-500 dark:text-zinc-400 mt-1">
             Type what you ate — we’ll look up nutrients and track them.
           </p>
           <div className="mt-4 flex gap-2">
@@ -178,7 +181,7 @@ export default function InputPage() {
               value={foodText}
               onChange={(e) => setFoodText(e.target.value)}
               placeholder="e.g. chicken breast, oatmeal, apple"
-              className="flex-1 bg-[#F4F7F5] rounded-2xl px-4 py-2.5 text-sm text-black outline-none border border-black/5 focus:border-[#4F7C6D] placeholder:text-gray-400"
+              className="flex-1 bg-[#F4F7F5] dark:bg-zinc-700 rounded-2xl px-4 py-2.5 text-sm text-black dark:text-zinc-100 outline-none border border-black/5 dark:border-white/20 focus:border-[#4F7C6D] placeholder:text-gray-400 dark:placeholder:text-zinc-500"
               onKeyDown={(e) => {
                 if (e.key === "Enter") {
                   e.preventDefault();
@@ -198,14 +201,14 @@ export default function InputPage() {
         </div>
 
         {/* Today's progress toward goals */}
-        <div className="bg-white rounded-3xl p-5 shadow-sm border border-black/5">
+        <div className="bg-white dark:bg-zinc-800 rounded-3xl p-5 shadow-sm border border-black/5 dark:border-white/10">
           <div className="flex items-center justify-between">
-            <h2 className="text-lg font-extrabold text-black">Today’s progress</h2>
+            <h2 className="text-lg font-extrabold text-black dark:text-zinc-100">Today’s progress</h2>
             <span className="text-sm font-semibold text-[#4F7C6D]">
               {goalsMet} / {totalGoals} goals met
             </span>
           </div>
-          <p className="text-xs text-gray-500 mt-1">
+          <p className="text-xs text-gray-500 dark:text-zinc-400 mt-1">
             Based on logged foods. Add items above to update.
           </p>
           <div className="mt-4 space-y-3">
@@ -261,14 +264,14 @@ export default function InputPage() {
         </div>
 
         {/* Logged foods with full nutrients */}
-        <div className="bg-white rounded-3xl p-5 shadow-sm border border-black/5">
-          <h2 className="text-lg font-extrabold text-black">Logged today</h2>
-          <p className="text-xs text-gray-500 mt-1">
+        <div className="bg-white dark:bg-zinc-800 rounded-3xl p-5 shadow-sm border border-black/5 dark:border-white/10">
+          <h2 className="text-lg font-extrabold text-black dark:text-zinc-100">Logged today</h2>
+          <p className="text-xs text-gray-500 dark:text-zinc-400 mt-1">
             Nutrients per item (macros + micronutrients).
           </p>
           <div className="mt-4 space-y-3">
             {foodsToday.length === 0 ? (
-              <p className="text-sm text-gray-400 py-4">No foods yet. Add something above.</p>
+              <p className="text-sm text-gray-400 dark:text-zinc-500 py-4">No foods yet. Add something above.</p>
             ) : (
               foodsToday
                 .slice()
@@ -276,15 +279,15 @@ export default function InputPage() {
                 .map((f) => (
                   <div
                     key={f.id}
-                    className="bg-[#F4F7F5] rounded-2xl px-4 py-3 border border-black/5"
+                    className="bg-[#F4F7F5] dark:bg-zinc-700 rounded-2xl px-4 py-3 border border-black/5 dark:border-white/10"
                   >
                     <div className="flex items-start justify-between gap-2">
                       <div>
-                        <p className="text-sm font-semibold text-black">{f.text}</p>
+                        <p className="text-sm font-semibold text-black dark:text-zinc-100">{f.text}</p>
                         {loadingMacroIds.has(f.id) ? (
-                          <p className="text-xs text-gray-500 mt-1">Looking up nutrients…</p>
+                          <p className="text-xs text-gray-500 dark:text-zinc-400 mt-1">Looking up nutrients…</p>
                         ) : f.macros ? (
-                          <div className="mt-2 grid grid-cols-2 gap-x-4 gap-y-1 text-xs text-gray-600">
+                          <div className="mt-2 grid grid-cols-2 gap-x-4 gap-y-1 text-xs text-gray-600 dark:text-zinc-400">
                             <span>Cal {Math.round(f.macros.calories)}</span>
                             <span>P {f.macros.protein}g</span>
                             <span>C {f.macros.carbs}g</span>
@@ -314,21 +317,25 @@ export default function InputPage() {
         </div>
 
         {/* Sleep, hydration, activity, mood — compact */}
-        <div className="bg-white rounded-3xl p-5 shadow-sm border border-black/5">
+        <div className="bg-white dark:bg-zinc-800 rounded-3xl p-5 shadow-sm border border-black/5 dark:border-white/10">
           <div className="flex items-center justify-between">
-            <h2 className="text-lg font-extrabold text-black">Also log</h2>
+            <h2 className="text-lg font-extrabold text-black dark:text-zinc-100">Also log</h2>
             <button
               type="button"
-              onClick={() => saveTodayToHistory()}
+              onClick={() => {
+                saveTodayToHistory();
+                setSavedFeedback(true);
+                setTimeout(() => setSavedFeedback(false), 2000);
+              }}
               className="px-4 py-2 rounded-2xl bg-[#4F7C6D] text-white text-sm font-semibold hover:opacity-90"
             >
-              Save day
+              {savedFeedback ? "Saved!" : "Save day"}
             </button>
           </div>
-          <p className="text-xs text-gray-500 mt-1">
+          <p className="text-xs text-gray-500 dark:text-zinc-400 mt-1">
             Sleep, hydration, activity, mood — used for trends.
           </p>
-          <div className="mt-3 space-y-0 divide-y divide-black/5">
+          <div className="mt-3 space-y-0 divide-y divide-black/5 dark:divide-white/10">
             <SliderRow
               label="Sleep"
               value={Number(sleepHours.toFixed(1))}
@@ -338,8 +345,8 @@ export default function InputPage() {
               onChange={setSleepHours}
               suffix="h"
             />
-            <SliderRow label="Hydration" value={waterCups} min={0} max={12} step={1} onChange={setWaterCups} suffix=" cups" />
-            <SliderRow label="Activity" value={activityMins} min={0} max={180} step={5} onChange={setActivityMins} suffix=" min" />
+            <SliderRow label="Hydration" value={waterCups} min={0} max={12} step={1} onChange={setWaterCups} displayText={`${(waterCups * CUPS_TO_LITRES).toFixed(1)} L`} />
+            <SliderRow label="Activity" value={activityMins} min={0} max={180} step={5} onChange={setActivityMins} suffix=" m" />
             <SliderRow label="Mood" value={mood} min={1} max={5} step={1} onChange={setMood} suffix="/5" />
           </div>
         </div>

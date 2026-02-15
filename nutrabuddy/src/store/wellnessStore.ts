@@ -55,6 +55,8 @@ export type WellnessState = {
 
   // Trends
   history: Snap[];
+
+  darkMode: boolean;
 };
 
 type WellnessActions = {
@@ -76,6 +78,8 @@ type WellnessActions = {
   setGoal: (key: keyof Macros, value: number) => void;
   setGoals: (partial: Partial<Macros>) => void;
   resetGoals: () => void;
+
+  setDarkMode: (v: boolean) => void;
 };
 
 /** Daily targets (typical RDI). */
@@ -200,6 +204,10 @@ export const useWellnessStore = create<WellnessState & WellnessActions>()(
 
       history: [],
 
+      darkMode: false,
+
+      setDarkMode: (v) => set({ darkMode: !!v }),
+
       setGoal: (key, value) =>
         set((s) => ({
           goals: { ...s.goals, [key]: Math.max(0, Number(value) || 0) },
@@ -262,9 +270,20 @@ export const useWellnessStore = create<WellnessState & WellnessActions>()(
           return { history };
         }),
 
-      saveTodayToHistory: () => {
-        get().addSnapshot();
-      },
+      saveTodayToHistory: () =>
+        set((s) => {
+          const base: Snap = {
+            id: uid(),
+            ts: Date.now(),
+            sleepHours: s.sleepHours,
+            waterCups: s.waterCups,
+            activityMins: s.activityMins,
+            mood: s.mood,
+            dietScore: s.dietScore,
+          };
+          const history = [...s.history, base].slice(-14);
+          return { history };
+        }),
     }),
     {
       name: "nutrabuddy-wellness",
@@ -277,6 +296,7 @@ export const useWellnessStore = create<WellnessState & WellnessActions>()(
         dietScore: s.dietScore,
         goals: s.goals,
         history: s.history,
+        darkMode: s.darkMode,
       }),
     }
   )

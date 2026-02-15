@@ -1,11 +1,67 @@
 import { NextResponse } from "next/server";
 
+type Context = {
+  sleepHours?: number;
+  waterCups?: number;
+  activityMins?: number;
+  mood?: number;
+  dietScore?: number;
+};
+
+function fallbackReply(_question: string, context: Context): string {
+  const sleep = context?.sleepHours ?? 0;
+  const water = context?.waterCups ?? 0;
+  const activity = context?.activityMins ?? 0;
+  const mood = context?.mood ?? 3;
+  const diet = context?.dietScore ?? 5;
+  const sleepTip =
+    sleep < 6
+      ? "Aim for 7–8 hours tonight. Small step: go to bed 15 min earlier."
+      : sleep >= 8
+        ? "Your sleep looks solid. Keep the same schedule."
+        : "You're in a good range. Consistency helps most.";
+  const waterTip =
+    water < 4
+      ? "Have a glass of water soon. Set a reminder for another in an hour."
+      : water >= 8
+        ? "Hydration is on track. Keep it up."
+        : "One or two more cups today would help.";
+  const activityTip =
+    activity < 20
+      ? "A 10–15 min walk can boost energy and mood. Try it next."
+      : activity >= 60
+        ? "You're moving well today. A light stretch could feel good."
+        : "You're doing fine. Add a short walk if you have time.";
+  const moodTip =
+    mood <= 2
+      ? "Be kind to yourself. One small positive action can shift the day."
+      : mood >= 4
+        ? "Your mood looks steady. Protect that with a bit of rest or fun."
+        : "A short walk or a call to someone you like often helps.";
+  const dietTip =
+    diet <= 3
+      ? "Focus on one better choice at your next meal: e.g. add veggies or protein."
+      : diet >= 7
+        ? "Your choices are supporting you. Keep the variety."
+        : "One piece of fruit or a handful of nuts can round out the day.";
+  return `TITLE: Quick check-in
+SUMMARY: Here are small steps based on your recent logs.
+
+SLEEP: ${sleepTip}
+HYDRATION: ${waterTip}
+ACTIVITY: ${activityTip}
+MOOD: ${moodTip}
+DIET: ${dietTip}
+
+NEXT STEP: Pick one tip above and do it in the next 2 hours.`;
+}
+
 export async function POST(req: Request) {
   try {
     const body = await req.json();
     const message: string =
       (body?.message ?? body?.question ?? "") as string;
-    const context =
+    const context: Context =
       body?.context ??
       (body?.sleepHours !== undefined
         ? {
@@ -21,7 +77,7 @@ export async function POST(req: Request) {
 
     if (!key) {
       return NextResponse.json(
-        { reply: "DEBUG: Missing GEMINI_API_KEY" },
+        { reply: fallbackReply(message, context) },
         { status: 200 }
       );
     }
@@ -74,23 +130,23 @@ User question: ${message}
       }),
     });
 
-    const data = await res.json();
+    const data = await res.json().catch(() => ({}));
 
     if (!res.ok) {
       return NextResponse.json(
-        { reply: `DEBUG ERROR: ${JSON.stringify(data)}` },
+        { reply: fallbackReply(message, context) },
         { status: 200 }
       );
     }
 
     const reply =
       data?.candidates?.[0]?.content?.parts?.[0]?.text ??
-      "I couldn't generate a response right now.";
+      fallbackReply(message, context);
 
     return NextResponse.json({ reply }, { status: 200 });
-  } catch (err: any) {
+  } catch {
     return NextResponse.json(
-      { reply: `DEBUG ERROR: ${err?.message ?? "Unknown error"}` },
+      { reply: fallbackReply("", { sleepHours: 7, waterCups: 6, activityMins: 30, mood: 3, dietScore: 5 }) },
       { status: 200 }
     );
   }

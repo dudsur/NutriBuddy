@@ -1,5 +1,7 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 :root {
   --background: #ffffff;
   --foreground: #171717;
@@ -12,11 +14,10 @@
   --font-mono: ui-monospace, monospace;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* When .dark is on html, use dark theme. Otherwise always light (user toggle overrides system). */
+.dark {
+  --background: #0f1419;
+  --foreground: #e6edf3;
 }
 
 body {
