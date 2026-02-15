@@ -24,6 +24,8 @@ export default function ProfilePage() {
   const setGoals = useWellnessStore((s) => s.setGoals);
   const darkMode = useWellnessStore((s) => s.darkMode);
   const setDarkMode = useWellnessStore((s) => s.setDarkMode);
+  const textSize = useWellnessStore((s) => s.textSize);
+  const setTextSize = useWellnessStore((s) => s.setTextSize);
 
   const [draft, setDraft] = useState<Partial<Macros>>(() => ({
     ...useWellnessStore.getState().goals,
@@ -169,7 +171,17 @@ export default function ProfilePage() {
           <div className="h-px bg-black/10 dark:bg-white/10" />
           <div className="flex items-center justify-between">
             <p className="text-sm font-semibold text-black dark:text-zinc-100">Text Size</p>
-            <span className="text-xs text-gray-500 dark:text-zinc-400">Medium</span>
+            <button
+              type="button"
+              onClick={() => {
+                const order: Array<"small" | "medium" | "large"> = ["small", "medium", "large"];
+                const i = order.indexOf(textSize);
+                setTextSize(order[(i + 1) % 3]);
+              }}
+              className="text-xs text-[#4F7C6D] font-medium hover:underline"
+            >
+              {textSize.charAt(0).toUpperCase() + textSize.slice(1)}
+            </button>
           </div>
           <div className="h-px bg-black/10 dark:bg-white/10" />
           <div className="flex items-center justify-between">

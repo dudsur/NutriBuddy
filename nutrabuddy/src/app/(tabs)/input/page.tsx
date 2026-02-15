@@ -41,8 +41,6 @@ function ProgressBar({
   );
 }
 
-const CUPS_TO_LITRES = 0.236588;
-
 function SliderRow(props: {
   label: string;
   value: number;
@@ -76,14 +74,14 @@ function SliderRow(props: {
 
 export default function InputPage() {
   const sleepHours = useWellnessStore((s) => s.sleepHours);
-  const waterCups = useWellnessStore((s) => s.waterCups);
+  const waterLitres = useWellnessStore((s) => s.waterLitres);
   const activityMins = useWellnessStore((s) => s.activityMins);
   const mood = useWellnessStore((s) => s.mood);
   const dietScore = useWellnessStore((s) => s.dietScore);
   const foodsToday = useWellnessStore((s) => s.foodsToday);
 
   const setSleepHours = useWellnessStore((s) => s.setSleepHours);
-  const setWaterCups = useWellnessStore((s) => s.setWaterCups);
+  const setWaterLitres = useWellnessStore((s) => s.setWaterLitres);
   const setActivityMins = useWellnessStore((s) => s.setActivityMins);
   const setMood = useWellnessStore((s) => s.setMood);
 
@@ -260,6 +258,13 @@ export default function InputPage() {
               label="Calcium"
               unit=" mg"
             />
+            <ProgressBar
+              current={totals.sodium ?? 0}
+              target={targets.sodium}
+              label="Sodium"
+              unit=" mg"
+              upperLimit
+            />
           </div>
         </div>
 
@@ -345,7 +350,7 @@ export default function InputPage() {
               onChange={setSleepHours}
               suffix="h"
             />
-            <SliderRow label="Hydration" value={waterCups} min={0} max={12} step={1} onChange={setWaterCups} displayText={`${(waterCups * CUPS_TO_LITRES).toFixed(1)} L`} />
+            <SliderRow label="Hydration" value={waterLitres} min={0.5} max={4} step={0.1} onChange={setWaterLitres} displayText={`${waterLitres.toFixed(1)} L`} />
             <SliderRow label="Activity" value={activityMins} min={0} max={180} step={5} onChange={setActivityMins} suffix=" m" />
             <SliderRow label="Mood" value={mood} min={1} max={5} step={1} onChange={setMood} suffix="/5" />
           </div>

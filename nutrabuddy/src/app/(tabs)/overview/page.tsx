@@ -4,10 +4,12 @@ import {
   useWellnessStore,
   sumMacros,
   getMacroGaps,
+  getEffectiveTargets,
   DAILY_TARGETS,
   goalsMetCount,
   type Macros,
 } from "@/store/wellnessStore";
+import { getAvatarKeyByLack, AVATAR_PATHS as avatarMap, type AvatarKey } from "@/lib/avatarByLack";
 import { AnimatePresence, motion } from "framer-motion";
 import { useMemo } from "react";
 
@@ -64,48 +66,6 @@ function getWhatToEat(gaps: Macros): { label: string; foods: string[] }[] {
   return out;
 }
 
-type AvatarKey =
-  | "well-rested"
-  | "sleep-deprived"
-  | "balanced-diet"
-  | "overindulging"
-  | "consistent-exercise"
-  | "sedentary"
-  | "fully-hydrated"
-  | "dehydrated"
-  | "mindful-calm";
-
-function determineAvatar({
-  sleep,
-  water,
-  activity,
-  mood,
-  diet,
-}: {
-  sleep: number;
-  water: number;
-  activity: number;
-  mood: number;
-  diet: number;
-}): AvatarKey {
-  // Priority order: strongest signals first
-  if (sleep <= 5) return "sleep-deprived";
-  if (sleep >= 7.5) return "well-rested";
-
-  if (water <= 3) return "dehydrated";
-  if (water >= 8) return "fully-hydrated";
-
-  if (activity <= 10) return "sedentary";
-  if (activity >= 90) return "consistent-exercise";
-
-  if (diet <= 3) return "overindulging";
-  if (diet >= 8) return "balanced-diet";
-
-  if (mood >= 4) return "mindful-calm";
-
-  return "well-rested";
-}
-
 function copyForAvatar(a: AvatarKey) {
   switch (a) {
     case "well-rested":
@@ -129,25 +89,14 @@ function copyForAvatar(a: AvatarKey) {
   }
 }
 
-const avatarMap: Record<AvatarKey, string> = {
-  "well-rested": "/avatars/human1/well-rested.png",
-  "sleep-deprived": "/avatars/human1/sleep-deprived.png",
-  "balanced-diet": "/avatars/human1/balanced-diet.png",
-  "overindulging": "/avatars/human1/overindulging.png",
-  "consistent-exercise": "/avatars/human1/consistent-exercise.png",
-  sedentary: "/avatars/human1/sedentary.png",
-  "fully-hydrated": "/avatars/human1/fully-hydrated.png",
-  dehydrated: "/avatars/human1/dehydrated.png",
-  "mindful-calm": "/avatars/human1/mindful-calm.png",
-};
-
 export default function OverviewPage() {
   const sleepHours = useWellnessStore((s) => s.sleepHours);
-  const waterCups = useWellnessStore((s) => s.waterCups);
+  const waterLitres = useWellnessStore((s) => s.waterLitres);
   const activityMins = useWellnessStore((s) => s.activityMins);
   const mood = useWellnessStore((s) => s.mood);
   const dietScore = useWellnessStore((s) => s.dietScore);
   const foodsToday = useWellnessStore((s) => s.foodsToday);
+  const goals = useWellnessStore((s) => s.goals);
 
   const { totals, gaps, suggestions, goalsMet } = useMemo(() => {
     const tot = sumMacros(foodsToday);
@@ -165,15 +114,21 @@ export default function OverviewPage() {
     [foodsToday]
   );
 
-  const avatarKey = useMemo(() => {
-    return determineAvatar({
-      sleep: sleepHours,
-      water: waterCups,
-      activity: activityMins,
-      mood,
-      diet: dietScore,
-    });
-  }, [sleepHours, waterCups, activityMins, mood, dietScore]);
+  const calorieLimit = useMemo(() => getEffectiveTargets(goals).calories, [goals]);
+
+  const avatarKey = useMemo(
+    () =>
+      getAvatarKeyByLack({
+        sleep: sleepHours,
+        water: waterLitres,
+        activity: activityMins,
+        mood,
+        diet: dietScore,
+        caloriesToday: totals.calories,
+        calorieLimit,
+      }),
+    [sleepHours, waterLitres, activityMins, mood, dietScore, totals.calories, calorieLimit]
+  );
 
   const moodCopy = copyForAvatar(avatarKey);
 
@@ -181,7 +136,7 @@ export default function OverviewPage() {
     <div className="min-h-[calc(100vh-80px)] bg-[#F4F7F5] dark:bg-zinc-900">
       <div className="mx-auto w-full max-w-[420px] px-5 pb-24 pt-6 space-y-5">
         {/* Mood card */}
-        <div className="bg-white dark:bg-zinc-800 rounded-3xl p-5 shadow-sm border border-black/5 dark:border-white/10">
+        <div className="group bg-white dark:bg-zinc-800 rounded-3xl p-5 shadow-sm border border-black/5 dark:border-white/10 transition-transform duration-200 ease-out hover:scale-[1.02] origin-center">
           <div className="flex items-center gap-4">
             <div className="w-24 h-24 rounded-3xl overflow-hidden bg-[#E3EFE8] dark:bg-zinc-700 shadow-sm border border-black/5 dark:border-white/10">
               <AnimatePresence mode="wait">
@@ -199,43 +154,43 @@ export default function OverviewPage() {
             </div>
 
             <div className="flex-1">
-              <p className="text-sm text-gray-500 dark:text-zinc-400 font-medium">NutraBuddy mood</p>
-              <h2 className="text-3xl font-extrabold leading-tight text-black dark:text-zinc-100">
+              <p className="text-sm text-gray-500 dark:text-zinc-400 font-medium group-hover:text-gray-700 dark:group-hover:text-zinc-300">NutraBuddy mood</p>
+              <h2 className="text-3xl font-extrabold leading-tight text-black dark:text-zinc-100 group-hover:text-black dark:group-hover:text-white">
                 {moodCopy.title}
               </h2>
-              <p className="text-gray-600 dark:text-zinc-300 mt-1">{moodCopy.desc}</p>
+              <p className="text-gray-600 dark:text-zinc-300 mt-1 group-hover:text-gray-700 dark:group-hover:text-zinc-200">{moodCopy.desc}</p>
             </div>
           </div>
         </div>
 
         {/* Stat cards */}
         <div className="grid grid-cols-2 gap-4">
-          <div className="bg-[#F4F7F5] dark:bg-zinc-800 rounded-3xl p-5 shadow-sm border border-black/5 dark:border-white/10">
-            <p className="text-sm text-gray-500 dark:text-zinc-400">Sleep</p>
-            <p className="text-4xl font-extrabold text-black dark:text-zinc-100 mt-2">
+          <div className="group bg-[#F4F7F5] dark:bg-zinc-800 rounded-3xl p-5 shadow-sm border border-black/5 dark:border-white/10 transition-transform duration-200 ease-out hover:scale-[1.02] origin-center">
+            <p className="text-sm text-gray-500 dark:text-zinc-400 group-hover:text-gray-700 dark:group-hover:text-zinc-300">Sleep</p>
+            <p className="text-4xl font-extrabold text-black dark:text-zinc-100 mt-2 group-hover:text-black dark:group-hover:text-white">
               {Math.round(sleepHours)}h
             </p>
           </div>
 
-          <div className="bg-[#F4F7F5] dark:bg-zinc-800 rounded-3xl p-5 shadow-sm border border-black/5 dark:border-white/10">
-            <p className="text-sm text-gray-500 dark:text-zinc-400">Hydration</p>
-            <p className="text-4xl font-extrabold text-black dark:text-zinc-100 mt-2">
-              {(waterCups * 0.236588).toFixed(1)} <span className="font-extrabold">L</span>
+          <div className="group bg-[#F4F7F5] dark:bg-zinc-800 rounded-3xl p-5 shadow-sm border border-black/5 dark:border-white/10 transition-transform duration-200 ease-out hover:scale-[1.02] origin-center">
+            <p className="text-sm text-gray-500 dark:text-zinc-400 group-hover:text-gray-700 dark:group-hover:text-zinc-300">Hydration</p>
+            <p className="text-4xl font-extrabold text-black dark:text-zinc-100 mt-2 group-hover:text-black dark:group-hover:text-white">
+              {waterLitres.toFixed(1)} <span className="font-extrabold">L</span>
             </p>
           </div>
         </div>
 
         {/* Today's macros & what's missing */}
-        <div className="bg-white dark:bg-zinc-800 rounded-3xl p-5 shadow-sm border border-black/5 dark:border-white/10">
+        <div className="group bg-white dark:bg-zinc-800 rounded-3xl p-5 shadow-sm border border-black/5 dark:border-white/10 transition-transform duration-200 ease-out hover:scale-[1.02] origin-center">
           <div className="flex items-center justify-between">
-            <h2 className="text-lg font-extrabold text-black dark:text-zinc-100">Today&apos;s diet</h2>
+            <h2 className="text-lg font-extrabold text-black dark:text-zinc-100 group-hover:text-black dark:group-hover:text-white">Today&apos;s diet</h2>
             {hasAnyMacros && (
-              <span className="text-sm font-semibold text-[#4F7C6D]">
+              <span className="text-sm font-semibold text-[#4F7C6D] group-hover:brightness-110">
                 {goalsMet} / 8 goals met
               </span>
             )}
           </div>
-          <p className="text-sm text-gray-500 dark:text-zinc-400 mt-1">
+          <p className="text-sm text-gray-500 dark:text-zinc-400 mt-1 group-hover:text-gray-700 dark:group-hover:text-zinc-300">
             Based on foods you logged. Tap + to add more.
           </p>
 

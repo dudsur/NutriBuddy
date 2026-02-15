@@ -34,7 +34,7 @@ export type Snap = {
   id: string;
   ts: number;
   sleepHours: number;
-  waterCups: number;
+  waterLitres: number;
   activityMins: number;
   mood: number;
   dietScore: number;
@@ -42,7 +42,7 @@ export type Snap = {
 
 export type WellnessState = {
   sleepHours: number; // 0–12
-  waterCups: number; // 0–12
+  waterLitres: number; // 0.5–4 L
   activityMins: number; // 0–180
   mood: number; // 1–5
 
@@ -57,6 +57,7 @@ export type WellnessState = {
   history: Snap[];
 
   darkMode: boolean;
+  textSize: "small" | "medium" | "large";
 };
 
 type WellnessActions = {
@@ -80,6 +81,7 @@ type WellnessActions = {
   resetGoals: () => void;
 
   setDarkMode: (v: boolean) => void;
+  setTextSize: (v: "small" | "medium" | "large") => void;
 };
 
 /** Daily targets (typical RDI). */
@@ -193,7 +195,7 @@ export const useWellnessStore = create<WellnessState & WellnessActions>()(
   persist(
     (set, get) => ({
       sleepHours: 7,
-      waterCups: 6,
+      waterLitres: 2,
       activityMins: 20,
       mood: 3,
 
@@ -205,8 +207,10 @@ export const useWellnessStore = create<WellnessState & WellnessActions>()(
       history: [],
 
       darkMode: false,
+      textSize: "medium",
 
       setDarkMode: (v) => set({ darkMode: !!v }),
+      setTextSize: (v) => set({ textSize: v }),
 
       setGoal: (key, value) =>
         set((s) => ({
@@ -219,7 +223,7 @@ export const useWellnessStore = create<WellnessState & WellnessActions>()(
       resetGoals: () => set({ goals: {} }),
 
       setSleepHours: (v) => set({ sleepHours: clamp(v, 0, 12) }),
-      setWaterCups: (v) => set({ waterCups: clamp(v, 0, 12) }),
+      setWaterLitres: (v) => set({ waterLitres: clamp(v, 0.5, 4) }),
       setActivityMins: (v) => set({ activityMins: clamp(v, 0, 180) }),
       setMood: (v) => set({ mood: clamp(v, 1, 5) }),
 
@@ -259,7 +263,7 @@ export const useWellnessStore = create<WellnessState & WellnessActions>()(
             id: uid(),
             ts: Date.now(),
             sleepHours: s.sleepHours,
-            waterCups: s.waterCups,
+            waterLitres: s.waterLitres,
             activityMins: s.activityMins,
             mood: s.mood,
             dietScore: s.dietScore,
@@ -276,7 +280,7 @@ export const useWellnessStore = create<WellnessState & WellnessActions>()(
             id: uid(),
             ts: Date.now(),
             sleepHours: s.sleepHours,
-            waterCups: s.waterCups,
+            waterLitres: s.waterLitres,
             activityMins: s.activityMins,
             mood: s.mood,
             dietScore: s.dietScore,
@@ -289,7 +293,7 @@ export const useWellnessStore = create<WellnessState & WellnessActions>()(
       name: "nutrabuddy-wellness",
       partialize: (s) => ({
         sleepHours: s.sleepHours,
-        waterCups: s.waterCups,
+        waterLitres: s.waterLitres,
         activityMins: s.activityMins,
         mood: s.mood,
         foodsToday: s.foodsToday,
@@ -297,6 +301,7 @@ export const useWellnessStore = create<WellnessState & WellnessActions>()(
         goals: s.goals,
         history: s.history,
         darkMode: s.darkMode,
+        textSize: s.textSize,
       }),
     }
   )

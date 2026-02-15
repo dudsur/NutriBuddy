@@ -1,5 +1,18 @@
+"use client";
+
 import type { ReactNode } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { useRef } from "react";
+import { motion } from "framer-motion";
+
+const TAB_ORDER: Record<string, number> = {
+  "/overview": 0,
+  "/trends": 1,
+  "/input": 2,
+  "/chat": 3,
+  "/profile": 4,
+};
 
 function NavLink({
   href,
@@ -109,9 +122,14 @@ export default function TabsLayout({
 }: {
   children: ReactNode;
 }) {
-  // Premium layout note:
-  // Only ONE header should exist here.
-  // Do NOT recreate the header inside individual pages.
+  const pathname = usePathname();
+  const prevPathRef = useRef<string | null>(null);
+  const tabIndex = TAB_ORDER[pathname] ?? 0;
+  const prevIndex =
+    prevPathRef.current === null ? tabIndex : (TAB_ORDER[prevPathRef.current] ?? 0);
+  const direction = prevPathRef.current === null ? 0 : Math.sign(tabIndex - prevIndex);
+  if (prevPathRef.current !== pathname) prevPathRef.current = pathname;
+
   return (
     <main className="min-h-screen bg-[#F4F7F5] dark:bg-zinc-900 flex justify-center">
       <div className="w-full max-w-[420px] min-h-screen bg-white dark:bg-zinc-900 shadow-xl flex flex-col">
@@ -121,15 +139,31 @@ export default function TabsLayout({
           <p className="text-sm opacity-90 mt-1">Your Wellness Companion</p>
         </div>
 
-        {/* Body */}
-        <div className="flex-1 bg-[#F4F7F5] dark:bg-zinc-900">{children}</div>
+        {/* Body: slide transition when switching tabs */}
+        <div className="flex-1 overflow-hidden relative bg-[#F4F7F5] dark:bg-zinc-900">
+          <motion.div
+            key={pathname}
+            className="w-full min-h-full"
+            initial={{
+              x: direction === 0 ? 0 : direction > 0 ? "100%" : "-100%",
+            }}
+            animate={{ x: 0 }}
+            transition={{
+              type: "tween",
+              duration: 0.28,
+              ease: [0.32, 0.72, 0, 1],
+            }}
+          >
+            {children}
+          </motion.div>
+        </div>
 
         {/* Bottom Nav: plus in center, 2 tabs each side */}
         <div className="sticky bottom-0 bg-white/95 dark:bg-zinc-900/95 backdrop-blur border-t border-black/10 dark:border-white/10">
           <div className="mx-auto w-full max-w-[420px] px-2 pb-3 pt-3">
             <nav className="grid grid-cols-5 items-end gap-0">
-              <NavLink href="/overview" label="Overview" icon={<IconOverview active />} />
-              <NavLink href="/trends" label="Trends" icon={<IconTrends />} />
+              <NavLink href="/overview" label="Overview" icon={<IconOverview active={pathname === "/overview"} />} active={pathname === "/overview"} />
+              <NavLink href="/trends" label="Trends" icon={<IconTrends />} active={pathname === "/trends"} />
               <div className="flex justify-center items-center pt-2">
                 <Link
                   href="/input"
@@ -139,8 +173,8 @@ export default function TabsLayout({
                   +
                 </Link>
               </div>
-              <NavLink href="/chat" label="Chat" icon={<IconChat />} />
-              <NavLink href="/profile" label="Profile" icon={<IconProfile />} />
+              <NavLink href="/chat" label="Chat" icon={<IconChat />} active={pathname === "/chat"} />
+              <NavLink href="/profile" label="Profile" icon={<IconProfile />} active={pathname === "/profile"} />
             </nav>
           </div>
         </div>

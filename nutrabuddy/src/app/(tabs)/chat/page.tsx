@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useWellnessStore } from "@/store/wellnessStore";
+import { useWellnessStore, sumMacros, getEffectiveTargets } from "@/store/wellnessStore";
+import { getAvatarPathByLack } from "@/lib/avatarByLack";
 
 type Msg = {
   id: string;
@@ -16,10 +17,12 @@ function uid() {
 
 export default function ChatPage() {
   const sleepHours = useWellnessStore((s) => s.sleepHours);
-  const waterCups = useWellnessStore((s) => s.waterCups);
+  const waterLitres = useWellnessStore((s) => s.waterLitres);
   const activityMins = useWellnessStore((s) => s.activityMins);
   const mood = useWellnessStore((s) => s.mood);
   const dietScore = useWellnessStore((s) => s.dietScore);
+  const foodsToday = useWellnessStore((s) => s.foodsToday);
+  const goals = useWellnessStore((s) => s.goals);
 
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
@@ -41,14 +44,25 @@ export default function ChatPage() {
     });
   }, [messages]);
 
-  const coachAvatar = useMemo(() => {
-    if (sleepHours <= 5) return "/avatars/human1/sleep-deprived.png";
-    if (waterCups <= 3) return "/avatars/human1/dehydrated.png";
-    if (dietScore <= 3) return "/avatars/human1/overindulging.png";
-    if (activityMins >= 90) return "/avatars/human1/consistent-exercise.png";
-    if (waterCups >= 8) return "/avatars/human1/fully-hydrated.png";
-    return "/avatars/human1/mindful-calm.png";
-  }, [sleepHours, waterCups, activityMins, dietScore]);
+  const { caloriesToday, calorieLimit } = useMemo(() => {
+    const tot = sumMacros(foodsToday);
+    const limit = getEffectiveTargets(goals).calories;
+    return { caloriesToday: tot.calories, calorieLimit: limit };
+  }, [foodsToday, goals]);
+
+  const coachAvatar = useMemo(
+    () =>
+      getAvatarPathByLack({
+        sleep: sleepHours,
+        water: waterLitres,
+        activity: activityMins,
+        mood,
+        diet: dietScore,
+        caloriesToday,
+        calorieLimit,
+      }),
+    [sleepHours, waterLitres, activityMins, mood, dietScore, caloriesToday, calorieLimit]
+  );
 
   async function send() {
     const text = input.trim();
@@ -66,7 +80,7 @@ export default function ChatPage() {
         body: JSON.stringify({
           question: text,
           sleepHours,
-          waterCups,
+          waterLitres,
           activityMins,
           mood,
           dietScore,

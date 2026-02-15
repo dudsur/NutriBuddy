@@ -13,12 +13,17 @@ const darkModeScript = `
   try {
     var s = localStorage.getItem('nutrabuddy-wellness');
     var isDark = false;
+    var textSize = 'medium';
     if (s) {
       var d = JSON.parse(s);
       isDark = !!(d.state && d.state.darkMode) || !!d.darkMode;
+      textSize = (d.state && d.state.textSize) || d.textSize || 'medium';
     }
     if (isDark) document.documentElement.classList.add('dark');
     else document.documentElement.classList.remove('dark');
+    ['text-size-small','text-size-medium','text-size-large'].forEach(function(c){ document.documentElement.classList.remove(c); });
+    document.documentElement.classList.add('text-size-' + textSize);
+    document.documentElement.style.fontSize = textSize === 'small' ? '8px' : textSize === 'large' ? '20.8px' : '16px';
   } catch (e) {
     document.documentElement.classList.remove('dark');
   }
