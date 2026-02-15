@@ -104,20 +104,6 @@ function IconProfile() {
   );
 }
 
-function IconLog() {
-  return (
-    <svg viewBox="0 0 24 24" fill="none">
-      <path
-        d="M9 5H7a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2M9 5a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2M9 5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
-}
-
 export default function TabsLayout({
   children,
 }: {
@@ -153,9 +139,8 @@ export default function TabsLayout({
               +
             </Link>
 
-            <nav className="grid grid-cols-5 gap-1">
+            <nav className="grid grid-cols-4 gap-2">
               <NavLink href="/overview" label="Overview" icon={<IconOverview active />} />
-              <NavLink href="/input" label="Log" icon={<IconLog />} />
               <NavLink href="/trends" label="Trends" icon={<IconTrends />} />
               <NavLink href="/chat" label="Chat" icon={<IconChat />} />
               <NavLink href="/profile" label="Profile" icon={<IconProfile />} />

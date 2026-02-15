@@ -126,6 +126,18 @@ app.get('/', (req, res) => {
   );
 });
 
+// GET /input (and other app paths) — you're on the API server, not the app
+app.get('/input', (req, res) => {
+  res.type('text/html').status(200).send(
+    '<!DOCTYPE html><html><head><meta charset="utf-8"><title>NutriBuddy</title></head><body style="font-family:sans-serif;padding:2rem;max-width:480px;">' +
+    '<h1>This is the API server</h1>' +
+    '<p>The <strong>Log</strong> page (/input) is served by the <strong>Next.js app</strong>, not this server.</p>' +
+    '<p>Open the app in your browser (e.g. <strong>http://localhost:3001</strong> if the app runs there, or the URL shown when you run <code>npm run dev</code> in the <code>nutrabuddy</code> folder).</p>' +
+    '<p>Use the green <strong>+</strong> button in the app to open the log screen.</p>' +
+    '</body></html>'
+  );
+});
+
 // POST /api/log — search USDA, save to Supabase, return saved row
 app.post('/api/log', async (req, res) => {
   try {
@@ -233,7 +245,7 @@ app.get('/api/status', async (req, res) => {
   }
 });
 
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 3002;
 
 if (!supabase) {
   console.warn('Warn: SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY missing in .env — /api/log and /api/status will return 500 until set.');

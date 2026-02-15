@@ -1,8 +1,68 @@
 "use client";
 
-import { useWellnessStore } from "@/store/wellnessStore";
+import {
+  useWellnessStore,
+  sumMacros,
+  getMacroGaps,
+  DAILY_TARGETS,
+  goalsMetCount,
+  type Macros,
+} from "@/store/wellnessStore";
 import { AnimatePresence, motion } from "framer-motion";
 import { useMemo } from "react";
+
+function getWhatToEat(gaps: Macros): { label: string; foods: string[] }[] {
+  const out: { label: string; foods: string[] }[] = [];
+  if (gaps.protein >= 15) {
+    out.push({
+      label: "Protein",
+      foods: ["chicken breast", "eggs", "Greek yogurt", "tofu", "lentils"],
+    });
+  }
+  if (gaps.carbs >= 50) {
+    out.push({
+      label: "Carbs",
+      foods: ["oatmeal", "rice", "sweet potato", "whole-grain bread", "banana"],
+    });
+  }
+  if (gaps.fat >= 20) {
+    out.push({
+      label: "Healthy fats",
+      foods: ["avocado", "nuts", "olive oil", "salmon", "nut butter"],
+    });
+  }
+  if (gaps.vitaminC >= 30) {
+    out.push({
+      label: "Vitamin C",
+      foods: ["oranges", "bell peppers", "broccoli", "strawberries", "kiwi"],
+    });
+  }
+  if (gaps.iron >= 5) {
+    out.push({
+      label: "Iron",
+      foods: ["spinach", "lean beef", "beans", "fortified cereal", "dark chocolate"],
+    });
+  }
+  if ((gaps.fiber ?? 0) >= 8) {
+    out.push({
+      label: "Fiber",
+      foods: ["beans", "oats", "berries", "broccoli", "whole grains"],
+    });
+  }
+  if ((gaps.calcium ?? 0) >= 200) {
+    out.push({
+      label: "Calcium",
+      foods: ["milk", "yogurt", "cheese", "tofu", "leafy greens"],
+    });
+  }
+  if (gaps.calories >= 400 && out.length === 0) {
+    out.push({
+      label: "More calories",
+      foods: ["nutrient-dense snacks", "extra serving at meals", "smoothie"],
+    });
+  }
+  return out;
+}
 
 type AvatarKey =
   | "well-rested"
@@ -87,6 +147,23 @@ export default function OverviewPage() {
   const activityMins = useWellnessStore((s) => s.activityMins);
   const mood = useWellnessStore((s) => s.mood);
   const dietScore = useWellnessStore((s) => s.dietScore);
+  const foodsToday = useWellnessStore((s) => s.foodsToday);
+
+  const { totals, gaps, suggestions, goalsMet } = useMemo(() => {
+    const tot = sumMacros(foodsToday);
+    const g = getMacroGaps(tot);
+    return {
+      totals: tot,
+      gaps: g,
+      suggestions: getWhatToEat(g),
+      goalsMet: goalsMetCount(tot),
+    };
+  }, [foodsToday]);
+
+  const hasAnyMacros = useMemo(
+    () => foodsToday.some((f) => f.macros && (f.macros.calories > 0 || f.macros.protein > 0)),
+    [foodsToday]
+  );
 
   const avatarKey = useMemo(() => {
     return determineAvatar({
@@ -148,8 +225,83 @@ export default function OverviewPage() {
           </div>
         </div>
 
-        {/* Optional quick debug badge (delete later) */}
-      
+        {/* Today's macros & what's missing */}
+        <div className="bg-white rounded-3xl p-5 shadow-sm border border-black/5">
+          <div className="flex items-center justify-between">
+            <h2 className="text-lg font-extrabold text-black">Today&apos;s diet</h2>
+            {hasAnyMacros && (
+              <span className="text-sm font-semibold text-[#4F7C6D]">
+                {goalsMet} / 8 goals met
+              </span>
+            )}
+          </div>
+          <p className="text-sm text-gray-500 mt-1">
+            Based on foods you logged. Tap + to add more.
+          </p>
+
+          {hasAnyMacros ? (
+            <>
+              <div className="mt-4 grid grid-cols-2 gap-3 text-sm">
+                <div className="bg-[#F4F7F5] rounded-2xl px-3 py-2">
+                  <p className="text-gray-500">Calories</p>
+                  <p className="font-bold text-black">
+                    {Math.round(totals.calories)} / {DAILY_TARGETS.calories}
+                  </p>
+                </div>
+                <div className="bg-[#F4F7F5] rounded-2xl px-3 py-2">
+                  <p className="text-gray-500">Protein</p>
+                  <p className="font-bold text-black">
+                    {Math.round(totals.protein)}g / {DAILY_TARGETS.protein}g
+                  </p>
+                </div>
+                <div className="bg-[#F4F7F5] rounded-2xl px-3 py-2">
+                  <p className="text-gray-500">Carbs</p>
+                  <p className="font-bold text-black">
+                    {Math.round(totals.carbs)}g / {DAILY_TARGETS.carbs}g
+                  </p>
+                </div>
+                <div className="bg-[#F4F7F5] rounded-2xl px-3 py-2">
+                  <p className="text-gray-500">Fat</p>
+                  <p className="font-bold text-black">
+                    {Math.round(totals.fat)}g / {DAILY_TARGETS.fat}g
+                  </p>
+                </div>
+              </div>
+
+              {suggestions.length > 0 ? (
+                <div className="mt-4 pt-4 border-t border-black/10">
+                  <p className="text-sm font-semibold text-black">What&apos;s missing</p>
+                  <p className="text-xs text-gray-500 mt-1">
+                    Try adding these to round out your day:
+                  </p>
+                  <ul className="mt-2 space-y-2">
+                    {suggestions.map((s) => (
+                      <li key={s.label} className="text-sm">
+                        <span className="font-medium text-[#4F7C6D]">{s.label}:</span>{" "}
+                        <span className="text-gray-700">
+                          {s.foods.slice(0, 3).join(", ")}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ) : (
+                <div className="mt-4 pt-4 border-t border-black/10">
+                  <p className="text-sm font-semibold text-[#4F7C6D]">
+                    You&apos;re on track
+                  </p>
+                  <p className="text-xs text-gray-500 mt-1">
+                    Your logged foods are covering your macro targets well. Keep it up!
+                  </p>
+                </div>
+              )}
+            </>
+          ) : (
+            <p className="mt-4 text-sm text-gray-500">
+              Log foods in the <strong>Log</strong> tab — we&apos;ll look up macros and show what to eat more of.
+            </p>
+          )}
+        </div>
       </div>
     </div>
   );

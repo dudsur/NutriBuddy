@@ -10,11 +10,24 @@ export type FoodCategory =
   | "snack"
   | "other";
 
+export type Macros = {
+  calories: number;
+  protein: number;
+  carbs: number;
+  fat: number;
+  fiber: number;
+  vitaminC: number;
+  iron: number;
+  calcium: number;
+  sodium: number;
+};
+
 export type FoodItem = {
   id: string;
   text: string;
   cat: FoodCategory;
   ts: number;
+  macros?: Macros;
 };
 
 export type Snap = {
@@ -47,7 +60,8 @@ type WellnessActions = {
   setActivityMins: (v: number) => void;
   setMood: (v: number) => void;
 
-  addFood: (text: string, cat: FoodCategory) => void;
+  addFood: (text: string, cat: FoodCategory) => string;
+  updateFoodMacros: (id: string, macros: Macros) => void;
   removeFood: (id: string) => void;
 
   recomputeDietScore: () => void;
@@ -56,6 +70,71 @@ type WellnessActions = {
   saveTodayToHistory: () => void;
   clearFoodsToday: () => void;
 };
+
+/** Daily targets (typical RDI). */
+export const DAILY_TARGETS: Macros = {
+  calories: 2000,
+  protein: 50,
+  carbs: 300,
+  fat: 65,
+  fiber: 28,
+  vitaminC: 90,
+  iron: 18,
+  calcium: 1000,
+  sodium: 2300,
+};
+
+export function sumMacros(foods: FoodItem[]): Macros {
+  const out: Macros = {
+    calories: 0, protein: 0, carbs: 0, fat: 0, fiber: 0,
+    vitaminC: 0, iron: 0, calcium: 0, sodium: 0,
+  };
+  for (const f of foods) {
+    if (f.macros) {
+      out.calories += f.macros.calories;
+      out.protein += f.macros.protein;
+      out.carbs += f.macros.carbs;
+      out.fat += f.macros.fat;
+      out.fiber += f.macros.fiber ?? 0;
+      out.vitaminC += f.macros.vitaminC;
+      out.iron += f.macros.iron;
+      out.calcium += f.macros.calcium ?? 0;
+      out.sodium += f.macros.sodium ?? 0;
+    }
+  }
+  return out;
+}
+
+/** What's still needed to meet targets (only positive values). */
+export function getMacroGaps(totals: Macros): Macros {
+  return {
+    calories: Math.max(0, DAILY_TARGETS.calories - totals.calories),
+    protein: Math.max(0, DAILY_TARGETS.protein - totals.protein),
+    carbs: Math.max(0, DAILY_TARGETS.carbs - totals.carbs),
+    fat: Math.max(0, DAILY_TARGETS.fat - totals.fat),
+    fiber: Math.max(0, DAILY_TARGETS.fiber - (totals.fiber ?? 0)),
+    vitaminC: Math.max(0, DAILY_TARGETS.vitaminC - totals.vitaminC),
+    iron: Math.max(0, DAILY_TARGETS.iron - totals.iron),
+    calcium: Math.max(0, DAILY_TARGETS.calcium - (totals.calcium ?? 0)),
+    sodium: Math.max(0, DAILY_TARGETS.sodium - (totals.sodium ?? 0)),
+  };
+}
+
+/** Number of daily goals met (at or over target). Sodium excluded (upper limit). */
+export function goalsMetCount(totals: Macros): number {
+  let n = 0;
+  if (totals.calories >= DAILY_TARGETS.calories) n++;
+  if (totals.protein >= DAILY_TARGETS.protein) n++;
+  if (totals.carbs >= DAILY_TARGETS.carbs) n++;
+  if (totals.fat >= DAILY_TARGETS.fat) n++;
+  if ((totals.fiber ?? 0) >= DAILY_TARGETS.fiber) n++;
+  if (totals.vitaminC >= DAILY_TARGETS.vitaminC) n++;
+  if (totals.iron >= DAILY_TARGETS.iron) n++;
+  if ((totals.calcium ?? 0) >= DAILY_TARGETS.calcium) n++;
+  return n;
+}
+
+export const GOAL_KEYS = ["calories", "protein", "carbs", "fat", "fiber", "vitaminC", "iron", "calcium"] as const;
 
 const clamp = (v: number, min: number, max: number) =>
   Math.min(max, Math.max(min, v));
@@ -101,14 +180,24 @@ export const useWellnessStore = create<WellnessState & WellnessActions>()(
       setActivityMins: (v) => set({ activityMins: clamp(v, 0, 180) }),
       setMood: (v) => set({ mood: clamp(v, 1, 5) }),
 
-      addFood: (text, cat) =>
+      addFood: (text, cat) => {
+        const id = uid();
         set((s) => {
           const foodsToday = [
             ...s.foodsToday,
-            { id: uid(), text: text.trim(), cat, ts: Date.now() },
+            { id, text: text.trim(), cat, ts: Date.now() },
           ];
           return { foodsToday, dietScore: scoreFromFoods(foodsToday) };
-        }),
+        });
+        return id;
+      },
+
+      updateFoodMacros: (id, macros) =>
+        set((s) => ({
+          foodsToday: s.foodsToday.map((f) =>
+            f.id === id ? { ...f, macros } : f
+          ),
+        })),
 
       removeFood: (id) =>
         set((s) => {
