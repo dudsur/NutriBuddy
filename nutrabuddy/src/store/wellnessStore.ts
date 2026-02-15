@@ -50,6 +50,9 @@ export type WellnessState = {
   dietScore: number; // 0–10 (auto)
   foodsToday: FoodItem[];
 
+  // User-set daily goals (Profile). Merged with DAILY_TARGETS for upper limits.
+  goals: Partial<Macros>;
+
   // Trends
   history: Snap[];
 };
@@ -69,6 +72,10 @@ type WellnessActions = {
   addSnapshot: (snap?: Partial<Snap>) => void;
   saveTodayToHistory: () => void;
   clearFoodsToday: () => void;
+
+  setGoal: (key: keyof Macros, value: number) => void;
+  setGoals: (partial: Partial<Macros>) => void;
+  resetGoals: () => void;
 };
 
 /** Daily targets (typical RDI). */
@@ -105,32 +112,48 @@ export function sumMacros(foods: FoodItem[]): Macros {
   return out;
 }
 
-/** What's still needed to meet targets (only positive values). */
-export function getMacroGaps(totals: Macros): Macros {
+/** Merge user goals with defaults. Used as upper limits in Today's progress. */
+export function getEffectiveTargets(goals: Partial<Macros> | undefined): Macros {
+  if (!goals || Object.keys(goals).length === 0) return { ...DAILY_TARGETS };
   return {
-    calories: Math.max(0, DAILY_TARGETS.calories - totals.calories),
-    protein: Math.max(0, DAILY_TARGETS.protein - totals.protein),
-    carbs: Math.max(0, DAILY_TARGETS.carbs - totals.carbs),
-    fat: Math.max(0, DAILY_TARGETS.fat - totals.fat),
-    fiber: Math.max(0, DAILY_TARGETS.fiber - (totals.fiber ?? 0)),
-    vitaminC: Math.max(0, DAILY_TARGETS.vitaminC - totals.vitaminC),
-    iron: Math.max(0, DAILY_TARGETS.iron - totals.iron),
-    calcium: Math.max(0, DAILY_TARGETS.calcium - (totals.calcium ?? 0)),
-    sodium: Math.max(0, DAILY_TARGETS.sodium - (totals.sodium ?? 0)),
+    calories: goals.calories ?? DAILY_TARGETS.calories,
+    protein: goals.protein ?? DAILY_TARGETS.protein,
+    carbs: goals.carbs ?? DAILY_TARGETS.carbs,
+    fat: goals.fat ?? DAILY_TARGETS.fat,
+    fiber: goals.fiber ?? DAILY_TARGETS.fiber,
+    vitaminC: goals.vitaminC ?? DAILY_TARGETS.vitaminC,
+    iron: goals.iron ?? DAILY_TARGETS.iron,
+    calcium: goals.calcium ?? DAILY_TARGETS.calcium,
+    sodium: goals.sodium ?? DAILY_TARGETS.sodium,
+  };
+}
+
+/** What's still needed to meet targets (only positive values). */
+export function getMacroGaps(totals: Macros, targets: Macros = DAILY_TARGETS): Macros {
+  return {
+    calories: Math.max(0, targets.calories - totals.calories),
+    protein: Math.max(0, targets.protein - totals.protein),
+    carbs: Math.max(0, targets.carbs - totals.carbs),
+    fat: Math.max(0, targets.fat - totals.fat),
+    fiber: Math.max(0, targets.fiber - (totals.fiber ?? 0)),
+    vitaminC: Math.max(0, targets.vitaminC - totals.vitaminC),
+    iron: Math.max(0, targets.iron - totals.iron),
+    calcium: Math.max(0, targets.calcium - (totals.calcium ?? 0)),
+    sodium: Math.max(0, targets.sodium - (totals.sodium ?? 0)),
   };
 }
 
 /** Number of daily goals met (at or over target). Sodium excluded (upper limit). */
-export function goalsMetCount(totals: Macros): number {
+export function goalsMetCount(totals: Macros, targets: Macros = DAILY_TARGETS): number {
   let n = 0;
-  if (totals.calories >= DAILY_TARGETS.calories) n++;
-  if (totals.protein >= DAILY_TARGETS.protein) n++;
-  if (totals.carbs >= DAILY_TARGETS.carbs) n++;
-  if (totals.fat >= DAILY_TARGETS.fat) n++;
-  if ((totals.fiber ?? 0) >= DAILY_TARGETS.fiber) n++;
-  if (totals.vitaminC >= DAILY_TARGETS.vitaminC) n++;
-  if (totals.iron >= DAILY_TARGETS.iron) n++;
-  if ((totals.calcium ?? 0) >= DAILY_TARGETS.calcium) n++;
+  if (totals.calories >= targets.calories) n++;
+  if (totals.protein >= targets.protein) n++;
+  if (totals.carbs >= targets.carbs) n++;
+  if (totals.fat >= targets.fat) n++;
+  if ((totals.fiber ?? 0) >= targets.fiber) n++;
+  if (totals.vitaminC >= targets.vitaminC) n++;
+  if (totals.iron >= targets.iron) n++;
+  if ((totals.calcium ?? 0) >= targets.calcium) n++;
   return n;
 }
 
@@ -173,7 +196,19 @@ export const useWellnessStore = create<WellnessState & WellnessActions>()(
       foodsToday: [],
       dietScore: 5,
 
+      goals: {},
+
       history: [],
+
+      setGoal: (key, value) =>
+        set((s) => ({
+          goals: { ...s.goals, [key]: Math.max(0, Number(value) || 0) },
+        })),
+      setGoals: (partial) =>
+        set((s) => ({
+          goals: { ...s.goals, ...partial },
+        })),
+      resetGoals: () => set({ goals: {} }),
 
       setSleepHours: (v) => set({ sleepHours: clamp(v, 0, 12) }),
       setWaterCups: (v) => set({ waterCups: clamp(v, 0, 12) }),
@@ -240,6 +275,7 @@ export const useWellnessStore = create<WellnessState & WellnessActions>()(
         mood: s.mood,
         foodsToday: s.foodsToday,
         dietScore: s.dietScore,
+        goals: s.goals,
         history: s.history,
       }),
     }

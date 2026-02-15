@@ -89,7 +89,7 @@ export default function ChatPage() {
         {
           id: uid(),
           role: "coach",
-          text: "Error connecting to coach.",
+          text: "Couldn’t reach the coach. Make sure the app is running (npm run dev) and open http://localhost:3000, then try again.",
           ts: Date.now(),
         },
       ]);

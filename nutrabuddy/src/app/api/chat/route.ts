@@ -3,8 +3,19 @@ import { NextResponse } from "next/server";
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const message: string = body?.message ?? "";
-    const context = body?.context ?? {};
+    const message: string =
+      (body?.message ?? body?.question ?? "") as string;
+    const context =
+      body?.context ??
+      (body?.sleepHours !== undefined
+        ? {
+            sleepHours: body.sleepHours,
+            waterCups: body.waterCups,
+            activityMins: body.activityMins,
+            mood: body.mood,
+            dietScore: body.dietScore,
+          }
+        : {});
 
     const key = process.env.GEMINI_API_KEY;
 

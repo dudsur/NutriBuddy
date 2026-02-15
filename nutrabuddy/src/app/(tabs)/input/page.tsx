@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   useWellnessStore,
   sumMacros,
-  DAILY_TARGETS,
+  getEffectiveTargets,
   goalsMetCount,
 } from "@/store/wellnessStore";
 import { estimateMacros } from "@/lib/estimateMacros";
@@ -85,6 +85,7 @@ export default function InputPage() {
   const setActivityMins = useWellnessStore((s) => s.setActivityMins);
   const setMood = useWellnessStore((s) => s.setMood);
 
+  const goals = useWellnessStore((s) => s.goals);
   const addFood = useWellnessStore((s) => s.addFood);
   const updateFoodMacros = useWellnessStore((s) => s.updateFoodMacros);
   const removeFood = useWellnessStore((s) => s.removeFood);
@@ -94,7 +95,8 @@ export default function InputPage() {
   const [loadingMacroIds, setLoadingMacroIds] = useState<Set<string>>(new Set());
 
   const totals = useMemo(() => sumMacros(foodsToday), [foodsToday]);
-  const goalsMet = useMemo(() => goalsMetCount(totals), [totals]);
+  const targets = useMemo(() => getEffectiveTargets(goals), [goals]);
+  const goalsMet = useMemo(() => goalsMetCount(totals, targets), [totals, targets]);
   const totalGoals = 8;
 
   // Backfill estimates for any logged foods that have no macros (e.g. added before API/estimate existed)
@@ -209,49 +211,49 @@ export default function InputPage() {
           <div className="mt-4 space-y-3">
             <ProgressBar
               current={totals.calories}
-              target={DAILY_TARGETS.calories}
+              target={targets.calories}
               label="Calories"
               unit=""
             />
             <ProgressBar
               current={totals.protein}
-              target={DAILY_TARGETS.protein}
+              target={targets.protein}
               label="Protein"
               unit="g"
             />
             <ProgressBar
               current={totals.carbs}
-              target={DAILY_TARGETS.carbs}
+              target={targets.carbs}
               label="Carbs"
               unit="g"
             />
             <ProgressBar
               current={totals.fat}
-              target={DAILY_TARGETS.fat}
+              target={targets.fat}
               label="Fat"
               unit="g"
             />
             <ProgressBar
               current={totals.fiber ?? 0}
-              target={DAILY_TARGETS.fiber}
+              target={targets.fiber}
               label="Fiber"
               unit="g"
             />
             <ProgressBar
               current={totals.vitaminC}
-              target={DAILY_TARGETS.vitaminC}
+              target={targets.vitaminC}
               label="Vitamin C"
               unit=" mg"
             />
             <ProgressBar
               current={totals.iron}
-              target={DAILY_TARGETS.iron}
+              target={targets.iron}
               label="Iron"
               unit=" mg"
             />
             <ProgressBar
               current={totals.calcium ?? 0}
-              target={DAILY_TARGETS.calcium}
+              target={targets.calcium}
               label="Calcium"
               unit=" mg"
             />
