@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { motion } from "framer-motion";
 import { useWellnessStore, sumMacros, getEffectiveTargets } from "@/store/wellnessStore";
 import { getAvatarPathByLack } from "@/lib/avatarByLack";
 
@@ -163,27 +164,36 @@ export default function ChatPage() {
         <div className="fixed left-0 right-0 bottom-[72px] z-[9999] flex justify-center px-5">
           <div className="w-full max-w-[420px]">
             <div className="bg-white dark:bg-zinc-800 rounded-3xl p-3 shadow-lg border border-black/5 dark:border-white/10 flex items-center gap-2">
-              <button
+              <motion.button
                 type="button"
                 onClick={() => setInput("I feel tired")}
-                className="w-10 h-10 rounded-2xl bg-[#F4F7F5] dark:bg-zinc-700 border border-black/5 dark:border-white/10 flex items-center justify-center"
+                whileTap={{ scale: 0.94 }}
+                whileHover={{ scale: 1.04 }}
+                transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                className="w-10 h-10 rounded-2xl bg-[#F4F7F5] dark:bg-zinc-700 border border-black/5 dark:border-white/10 flex items-center justify-center select-none touch-manipulation"
               >
                 😴
-              </button>
-              <button
+              </motion.button>
+              <motion.button
                 type="button"
                 onClick={() => setInput("What should I eat today?")}
-                className="w-10 h-10 rounded-2xl bg-[#F4F7F5] dark:bg-zinc-700 border border-black/5 dark:border-white/10 flex items-center justify-center"
+                whileTap={{ scale: 0.94 }}
+                whileHover={{ scale: 1.04 }}
+                transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                className="w-10 h-10 rounded-2xl bg-[#F4F7F5] dark:bg-zinc-700 border border-black/5 dark:border-white/10 flex items-center justify-center select-none touch-manipulation"
               >
                 🍽️
-              </button>
-              <button
+              </motion.button>
+              <motion.button
                 type="button"
                 onClick={() => setInput("How do I improve my energy?")}
-                className="w-10 h-10 rounded-2xl bg-[#F4F7F5] dark:bg-zinc-700 border border-black/5 dark:border-white/10 flex items-center justify-center"
+                whileTap={{ scale: 0.94 }}
+                whileHover={{ scale: 1.04 }}
+                transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                className="w-10 h-10 rounded-2xl bg-[#F4F7F5] dark:bg-zinc-700 border border-black/5 dark:border-white/10 flex items-center justify-center select-none touch-manipulation"
               >
                 ⚡
-              </button>
+              </motion.button>
               <input
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
@@ -193,14 +203,28 @@ export default function ChatPage() {
                   if (e.key === "Enter") send();
                 }}
               />
-              <button
+              <motion.button
                 type="button"
                 onClick={send}
                 disabled={loading}
-                className="px-4 py-2 rounded-2xl bg-[#4F7C6D] text-white text-sm font-semibold disabled:opacity-50 hover:opacity-90 transition"
+                initial={{ boxShadow: "0 2px 8px rgba(79, 124, 109, 0.25)" }}
+                whileTap={loading ? undefined : { scale: 0.92, boxShadow: "0 6px 22px rgba(79, 124, 109, 0.55)" }}
+                whileHover={loading ? undefined : { scale: 1.02, boxShadow: "0 4px 16px rgba(79, 124, 109, 0.35)" }}
+                transition={{
+                  scale: { type: "spring", stiffness: 500, damping: 28 },
+                  boxShadow: { duration: 0.18 },
+                }}
+                className="px-4 py-2 rounded-2xl bg-[#4F7C6D] text-white text-sm font-semibold disabled:opacity-50 min-w-[4rem] h-9 flex items-center justify-center select-none touch-manipulation cursor-pointer"
               >
-                {loading ? "..." : "Send"}
-              </button>
+                {loading ? (
+                  <span
+                    className="w-4 h-4 rounded-full border-2 border-white/30 border-t-white animate-spin"
+                    aria-hidden
+                  />
+                ) : (
+                  "Send"
+                )}
+              </motion.button>
             </div>
           </div>
         </div>
