@@ -5,7 +5,6 @@ import {
   sumMacros,
   getMacroGaps,
   getEffectiveTargets,
-  DAILY_TARGETS,
   goalsMetCount,
   type Macros,
 } from "@/store/wellnessStore";
@@ -114,7 +113,18 @@ export default function OverviewPage() {
     [foodsToday]
   );
 
-  const calorieLimit = useMemo(() => getEffectiveTargets(goals).calories, [goals]);
+  const targets = useMemo(() => getEffectiveTargets(goals), [goals]);
+  const calorieLimit = targets.calories;
+
+  const macroMet = useMemo(
+    () => ({
+      calories: totals.calories >= targets.calories,
+      protein: totals.protein >= targets.protein,
+      carbs: totals.carbs >= targets.carbs,
+      fat: totals.fat >= targets.fat,
+    }),
+    [totals, targets]
+  );
 
   const avatarKey = useMemo(
     () =>
@@ -197,29 +207,97 @@ export default function OverviewPage() {
           {hasAnyMacros ? (
             <>
               <div className="mt-4 grid grid-cols-2 gap-3 text-sm">
-                <div className="bg-[#F4F7F5] dark:bg-zinc-700 rounded-2xl px-3 py-2">
-                  <p className="text-gray-500 dark:text-zinc-400">Calories</p>
-                  <p className="font-bold text-black dark:text-zinc-100">
-                    {Math.round(totals.calories)} / {DAILY_TARGETS.calories}
+                <div
+                  className={`rounded-2xl px-3 py-2 ${
+                    macroMet.calories
+                      ? "bg-[#4F7C6D] text-white"
+                      : "bg-[#F4F7F5] dark:bg-zinc-700"
+                  }`}
+                >
+                  <p className={macroMet.calories ? "text-white/90" : "text-gray-500 dark:text-zinc-400"}>
+                    Calories
                   </p>
+                  <div className="flex items-center gap-2">
+                    <p className="font-bold text-black dark:text-zinc-100">
+                      {Math.round(totals.calories)} / {targets.calories}
+                    </p>
+                    {macroMet.calories && (
+                      <span className="inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-white">
+                        <svg viewBox="0 0 24 24" className="h-3 w-3 text-[#4F7C6D]" fill="none" stroke="currentColor" strokeWidth="2.5">
+                          <path d="M5 13l4 4L19 7" />
+                        </svg>
+                      </span>
+                    )}
+                  </div>
                 </div>
-                <div className="bg-[#F4F7F5] rounded-2xl px-3 py-2">
-                  <p className="text-gray-500">Protein</p>
-                  <p className="font-bold text-black">
-                    {Math.round(totals.protein)}g / {DAILY_TARGETS.protein}g
+                <div
+                  className={`rounded-2xl px-3 py-2 ${
+                    macroMet.protein
+                      ? "bg-[#4F7C6D] text-white"
+                      : "bg-[#F4F7F5] dark:bg-zinc-700"
+                  }`}
+                >
+                  <p className={macroMet.protein ? "text-white/90" : "text-gray-500 dark:text-zinc-400"}>
+                    Protein
                   </p>
+                  <div className="flex items-center gap-2">
+                    <p className={`font-bold ${macroMet.protein ? "text-white" : "text-black dark:text-zinc-100"}`}>
+                      {Math.round(totals.protein)}g / {targets.protein}g
+                    </p>
+                    {macroMet.protein && (
+                      <span className="inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-white">
+                        <svg viewBox="0 0 24 24" className="h-3 w-3 text-[#4F7C6D]" fill="none" stroke="currentColor" strokeWidth="2.5">
+                          <path d="M5 13l4 4L19 7" />
+                        </svg>
+                      </span>
+                    )}
+                  </div>
                 </div>
-                <div className="bg-[#F4F7F5] rounded-2xl px-3 py-2">
-                  <p className="text-gray-500">Carbs</p>
-                  <p className="font-bold text-black">
-                    {Math.round(totals.carbs)}g / {DAILY_TARGETS.carbs}g
+                <div
+                  className={`rounded-2xl px-3 py-2 ${
+                    macroMet.carbs
+                      ? "bg-[#4F7C6D] text-white"
+                      : "bg-[#F4F7F5] dark:bg-zinc-700"
+                  }`}
+                >
+                  <p className={macroMet.carbs ? "text-white/90" : "text-gray-500 dark:text-zinc-400"}>
+                    Carbs
                   </p>
+                  <div className="flex items-center gap-2">
+                    <p className={`font-bold ${macroMet.carbs ? "text-white" : "text-black dark:text-zinc-100"}`}>
+                      {Math.round(totals.carbs)}g / {targets.carbs}g
+                    </p>
+                    {macroMet.carbs && (
+                      <span className="inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-white">
+                        <svg viewBox="0 0 24 24" className="h-3 w-3 text-[#4F7C6D]" fill="none" stroke="currentColor" strokeWidth="2.5">
+                          <path d="M5 13l4 4L19 7" />
+                        </svg>
+                      </span>
+                    )}
+                  </div>
                 </div>
-                <div className="bg-[#F4F7F5] rounded-2xl px-3 py-2">
-                  <p className="text-gray-500">Fat</p>
-                  <p className="font-bold text-black">
-                    {Math.round(totals.fat)}g / {DAILY_TARGETS.fat}g
+                <div
+                  className={`rounded-2xl px-3 py-2 ${
+                    macroMet.fat
+                      ? "bg-[#4F7C6D] text-white"
+                      : "bg-[#F4F7F5] dark:bg-zinc-700"
+                  }`}
+                >
+                  <p className={macroMet.fat ? "text-white/90" : "text-gray-500 dark:text-zinc-400"}>
+                    Fat
                   </p>
+                  <div className="flex items-center gap-2">
+                    <p className={`font-bold ${macroMet.fat ? "text-white" : "text-black dark:text-zinc-100"}`}>
+                      {Math.round(totals.fat)}g / {targets.fat}g
+                    </p>
+                    {macroMet.fat && (
+                      <span className="inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-white">
+                        <svg viewBox="0 0 24 24" className="h-3 w-3 text-[#4F7C6D]" fill="none" stroke="currentColor" strokeWidth="2.5">
+                          <path d="M5 13l4 4L19 7" />
+                        </svg>
+                      </span>
+                    )}
+                  </div>
                 </div>
               </div>
 

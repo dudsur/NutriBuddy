@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
-import { useWellnessStore, type Snap } from "@/store/wellnessStore";
+import { useWellnessStore } from "@/store/wellnessStore";
 
 function lastN<T>(arr: T[], n: number) {
   return arr.slice(Math.max(0, arr.length - n));
@@ -69,7 +69,6 @@ function MiniBarChart({
 }
 
 export default function TrendsPage() {
-  // ✅ Select primitives individually (avoids getSnapshot loop)
   const history = useWellnessStore((s) => s.history);
   const saveTodayToHistory = useWellnessStore((s) => s.saveTodayToHistory);
 
@@ -78,7 +77,6 @@ export default function TrendsPage() {
   const activityMins = useWellnessStore((s) => s.activityMins);
   const mood = useWellnessStore((s) => s.mood);
 
-  // Only show saved logs — no auto-save. Bars appear only after user clicks "Save today's snapshot".
   const recent = useMemo(() => lastN(history, 10), [history]);
 
   const sleepSeries = recent.map((s) => s.sleepHours);
