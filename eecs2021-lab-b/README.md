@@ -45,6 +45,9 @@ Handout: read **eight** signed words; starter values listed as **40, 20, 8, 4**.
 Only four literals appear on the sheet, so this pack fills the other four with
 **16, −8, 12, −4** (still multiples of 4 so `/4` is exact).
 
+Initialize with **`addi` + `sw`** (no `.data` / `.word`), then unroll
+`lw` → `srai …, 2` → `sw` eight times. Running sum in `x5`; final `sw` of the sum.
+
 | Addr offset | Loaded | After `srai _, _, 2` |
 |-------------|--------|----------------------|
 | 0 | 40 | 10 |
@@ -56,8 +59,6 @@ Only four literals appear on the sheet, so this pack fills the other four with
 | 24 | 12 | 3 |
 | 28 | −4 | −1 |
 | 32 (sum) | — | **22** |
-
-Unrolled `lw` → `srai` → `sw` eight times (no loops/branches), running sum in `x5`, final `sw` of the sum.
 
 ## Files
 
